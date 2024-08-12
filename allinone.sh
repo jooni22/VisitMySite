@@ -94,6 +94,13 @@ check_proxies() {
    echo "Proxy check completed. Working proxies saved to $WORKING_PROXY_FILE_PATH"
 }
 
+# New function to get a random delay
+get_random_delay() {
+    local delay_from=$(grep "^DELAY_FROM:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-)
+    local delay_to=$(grep "^DELAY_TO:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-)
+    echo $((RANDOM % (delay_to - delay_from + 1) + delay_from))
+}
+
 # Function to execute curl requests
 execute_curl_requests() {
     local view_urls=($(grep "^VIEW_URL:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-))
@@ -140,6 +147,11 @@ execute_curl_requests() {
             fi
             
             echo "$view_url $ip:$port $status ${execution_time}ms"
+            
+            # Add random delay between requests
+            local delay=$(get_random_delay)
+            echo "Waiting for ${delay}ms before next request..."
+            sleep $(awk "BEGIN {print $delay/1000}")
         done
         echo "########################" 
         echo "  Results for $view_url:"
