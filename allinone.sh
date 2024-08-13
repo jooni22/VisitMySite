@@ -114,6 +114,17 @@ execute_curl_requests() {
 
         echo "Processing URL: $view_url"
 
+        # Extract base URL
+        local base_url=$(echo "$view_url" | awk -F[/:] '{print $1"://"$4}')
+        echo "Base URL: $base_url"
+
+        # Run Python script to scrape cookies
+        python3 cookie_scraper.py "$base_url"
+
+        # Load cookies from file
+        local cookies=$(cat cookies.txt | tr '\n' ';')
+
+
         for proxy in "${proxies[@]}"; do
             local ip=$(echo $proxy | cut -d: -f1)
             local port=$(echo $proxy | cut -d: -f2)
@@ -121,13 +132,21 @@ execute_curl_requests() {
             
             local start_time=$(($(date +%s%N)/1000000))
             local response=$(curl -s -k -x socks5h://$ip:$port \
+                --compressed \
                 -H "User-Agent: $user_agent" \
-                -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8" \
-                -H "Accept-Language: en-US,en;q=0.5" \
-                -H "Accept-Encoding: gzip, deflate, br" \
-                -H "DNT: 1" \
-                -H "Connection: keep-alive" \
-                -H "Upgrade-Insecure-Requests: 1" \
+                -H 'Accept-Language: en-US;q=0.7,en;q=0.3' \
+                -H 'Accept-Encoding: gzip, deflate, br, zstd' \
+                -H 'DNT: 1' \
+                -H 'Sec-GPC: 1' \
+                -H 'Connection: keep-alive' \
+                -H "Cookie: $cookies" \
+                -H 'Upgrade-Insecure-Requests: 1' \
+                -H 'Sec-Fetch-Dest: document' \
+                -H 'Sec-Fetch-Mode: navigate' \
+                -H 'Sec-Fetch-Site: none' \
+                -H 'Sec-Fetch-User: ?1' \
+                -H 'Priority: u=1' \
+                -H 'TE: trailers' \
                 -o /dev/null -w "%{http_code}" \
                 -m 5 \
                 "$view_url" 2>/dev/null)
