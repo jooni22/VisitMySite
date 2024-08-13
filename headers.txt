@@ -1,18 +1,13 @@
-x-content-type-options: nosniff
-x-xss-protection: 1; mode=block
-x-frame-options: SAMEORIGIN
-Accept-CH: sec-ch-ua-model,sec-ch-ua-platform-version,sec-ch-ua-full-version
-Content-Type: text/html; charset=utf-8
-rlogid: t6u%60tsodhct%60d13%3F%3Ctofpbqqjfmaqba36*%3Bo%3Fik(rbpv6612-1914c26257e-0x1703
-x-envoy-upstream-service-time: 223
-Server: ebay-proxy-server
-strict-transport-security: max-age=31536000
-Vary: Accept-Encoding
-Date: Tue, 13 Aug 2024 14:30:54 GMT
+Content-Type: text/html
 Transfer-Encoding: chunked
 Connection: close
-Connection: close
-Set-Cookie: dp1=bbl/PL6a7dd51e^; Domain=.ebay.de; Path=/; Expires=Thu, 13 Aug 2026 14:30:54 GMT; Secure
-Set-Cookie: dp1=bbl/PL6a7dd51e^; Domain=.ebay.de; Path=/; Expires=Thu, 13 Aug 2026 14:30:54 GMT; Secure
-Set-Cookie: dp1=bbl/PL6a7dd51e^; Domain=.ebay.de; Path=/; Expires=Thu, 13 Aug 2026 14:30:54 GMT; Secure
-Set-Cookie: dp1=bbl/PL6a7dd51e^; Domain=.ebay.de; Path=/; Expires=Thu, 13 Aug 2026 14:30:54 GMT; Secure
+Server: Server
+Date: Tue, 13 Aug 2024 14:35:09 GMT
+x-amz-rid: MCD5X1EHD7PGGK00P2Y0
+Vary: Content-Type,Accept-Encoding,User-Agent
+Strict-Transport-Security: max-age=47474747; includeSubDomains; preload
+X-Cache: Miss from cloudfront
+Via: 1.1 b8226c69dd6cd8327e2c0133e6e7c594.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: WAW51-P5
+Alt-Svc: h3=":443"; ma=86400
+X-Amz-Cf-Id: sAGj4VaUztvFvSo5MsnvoWbuqmCqgZ4by3_7NgMiTsMktmiZf_YL7g==

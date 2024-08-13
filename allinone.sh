@@ -118,9 +118,6 @@ execute_curl_requests() {
         local base_url=$(echo "$view_url" | awk -F[/:] '{print $1"://"$4}')
         echo "Base URL: $base_url"
 
-        # Run Python script to scrape cookies
-        python3 cookie_scraper.py "$base_url"
-
         # Load cookies from file
         local cookies=$(cat cookies.txt | tr '\n' ';')
 
@@ -166,7 +163,8 @@ execute_curl_requests() {
             fi
             
             echo "$view_url $ip:$port $status ${execution_time}ms"
-            
+            # Run Python script to scrape cookies
+            python3 cookie_scraper.py "$base_url"
             # Add random delay between requests
             local delay=$(get_random_delay)
             echo "Waiting for ${delay}ms before next request..."
