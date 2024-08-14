@@ -96,7 +96,7 @@ check_proxies() {
                 -H "Upgrade-Insecure-Requests: 1" \
                 -H "Upgrade: h2c" \
                 -L \
-                https://google.com >/dev/null 2>&1; then
+                https://example.com >/dev/null 2>&1; then
         echo "$ip:$port";
       fi
     ' | tee $WORKING_PROXY_FILE_PATH

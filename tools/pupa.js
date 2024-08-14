@@ -51,7 +51,7 @@ async function runScraper(viewUrl, ip, port, userAgent) {
     // Check IP address
     console.log('Checking IP address...');
     try {
-      const ipCheckPromise = page.goto('http://httpbin.org/ip', { waitUntil: 'networkidle2' });
+      const ipCheckPromise = page.goto('https://httpbin.org/ip', { waitUntil: 'networkidle2' });
       await Promise.race([
         ipCheckPromise,
         new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
