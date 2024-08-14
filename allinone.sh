@@ -164,7 +164,7 @@ execute_curl_requests() {
             
             echo "$view_url $ip:$port $status ${execution_time}ms"
             # Run Python script to scrape cookies
-            python3 cookie_scraper.py "$base_url"
+            #python3 cookie_scraper.py "$base_url"
             # Add random delay between requests
             local delay=$(get_random_delay)
             echo "Waiting for ${delay}ms before next request..."

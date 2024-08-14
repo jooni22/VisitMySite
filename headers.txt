@@ -1,13 +1,3 @@
-Content-Type: text/html
-Transfer-Encoding: chunked
-Connection: close
-Server: Server
-Date: Tue, 13 Aug 2024 14:35:09 GMT
-x-amz-rid: MCD5X1EHD7PGGK00P2Y0
-Vary: Content-Type,Accept-Encoding,User-Agent
-Strict-Transport-Security: max-age=47474747; includeSubDomains; preload
-X-Cache: Miss from cloudfront
-Via: 1.1 b8226c69dd6cd8327e2c0133e6e7c594.cloudfront.net (CloudFront)
-X-Amz-Cf-Pop: WAW51-P5
-Alt-Svc: h3=":443"; ma=86400
-X-Amz-Cf-Id: sAGj4VaUztvFvSo5MsnvoWbuqmCqgZ4by3_7NgMiTsMktmiZf_YL7g==
+Server: BaseHTTP/0.6 Python/3.11.2
+Date: Wed, 14 Aug 2024 00:40:42 GMT
+Content-type: text/plain
