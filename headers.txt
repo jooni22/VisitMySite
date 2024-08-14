@@ -1,3 +1,0 @@
-Server: BaseHTTP/0.6 Python/3.11.2
-Date: Wed, 14 Aug 2024 00:40:42 GMT
-Content-type: text/plain

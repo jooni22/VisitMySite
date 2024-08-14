@@ -8,6 +8,7 @@ WORKING_PROXY_FILE_PATH="res/working_proxy.txt"
 read_config() {
     if [[ -f "$CONFIG_FILE_PATH" ]]; then
         PROXY_URL=$(grep "^PROXY_URL:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-)
+        TYPE_OF_PROXY=$(grep "^TYPE_OF_PROXY:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-)
         NEW_PROXY_URL=$(grep "^NEW_PROXY_URL:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-)
         NEW_PROXY_FILE=$(grep "^NEW_PROXY_FILE:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-)
     else
@@ -19,7 +20,7 @@ read_config() {
 # Function to download proxy list
 download_proxy_list() {
     if [[ "$PROXY_URL" == *"TheSpeedX/PROXY-List"* ]]; then
-        if ! curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt > $PROXYLIST_FILE_PATH; then
+        if ! curl -s https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/${TYPE_OF_PROXY}.txt > $PROXYLIST_FILE_PATH; then
             echo "Error: Failed to download proxy list from TheSpeedX/PROXY-List."
             exit 1
         fi
@@ -80,6 +81,7 @@ get_random_user_agent() {
 # New function to check proxies
 check_proxies() {
     echo "Checking proxies..."
+    echo "Type of proxy: $TYPE_OF_PROXY"
     echo "Getting proxies from $PROXYLIST_FILE_PATH"
     > $WORKING_PROXY_FILE_PATH;  # Clear the working proxy file
     cat $PROXYLIST_FILE_PATH | \
@@ -87,7 +89,14 @@ check_proxies() {
       ip_port="{}";
       ip=$(echo $ip_port | cut -d: -f1);
       port=$(echo $ip_port | cut -d: -f2);
-      if timeout 5 curl -s -k -x socks5h://$ip:$port https://www.google.com >/dev/null 2>&1; then
+      if timeout 5 curl --http2 -s -k -x http://$ip:$port \
+                -H "Accept: text/html,application/xhtml+xml,application/xml" \
+                -H "DNT: 1" \
+                -H "Connection: keep-alive" \
+                -H "Upgrade-Insecure-Requests: 1" \
+                -H "Upgrade: h2c" \
+                -L \
+                https://google.com >/dev/null 2>&1; then
         echo "$ip:$port";
       fi
     ' | tee $WORKING_PROXY_FILE_PATH
@@ -101,8 +110,8 @@ get_random_delay() {
     echo $((RANDOM % (delay_to - delay_from + 1) + delay_from))
 }
 
-# Function to execute curl requests
-execute_curl_requests() {
+# Function to execute JS requests
+execute_js_requests() {
     local view_urls=($(grep "^VIEW_URL:" "$CONFIG_FILE_PATH" | cut -d' ' -f2-))
     local proxies=($(cat "$WORKING_PROXY_FILE_PATH"))
     local total_success_count=0
@@ -114,46 +123,21 @@ execute_curl_requests() {
 
         echo "Processing URL: $view_url"
 
-        # Extract base URL
-        local base_url=$(echo "$view_url" | awk -F[/:] '{print $1"://"$4}')
-        echo "Base URL: $base_url"
-
-        # Load cookies from file
-        local cookies=$(cat cookies.txt | tr '\n' ';')
-
-
         for proxy in "${proxies[@]}"; do
             local ip=$(echo $proxy | cut -d: -f1)
             local port=$(echo $proxy | cut -d: -f2)
             local user_agent=$(get_random_user_agent)
             
             local start_time=$(($(date +%s%N)/1000000))
-            local response=$(curl -s -k -x socks5h://$ip:$port \
-                --compressed \
-                -H "User-Agent: $user_agent" \
-                -H 'Accept-Language: en-US;q=0.7,en;q=0.3' \
-                -H 'Accept-Encoding: gzip, deflate, br, zstd' \
-                -H 'DNT: 1' \
-                -H 'Sec-GPC: 1' \
-                -H 'Connection: keep-alive' \
-                -H "Cookie: $cookies" \
-                -H 'Upgrade-Insecure-Requests: 1' \
-                -H 'Sec-Fetch-Dest: document' \
-                -H 'Sec-Fetch-Mode: navigate' \
-                -H 'Sec-Fetch-Site: none' \
-                -H 'Sec-Fetch-User: ?1' \
-                -H 'Priority: u=1' \
-                -H 'TE: trailers' \
-                -o /dev/null -w "%{http_code}" \
-                -m 5 \
-                "$view_url" 2>/dev/null)
-            local end_time=$(($(date +%s%N)/1000000))
             
+            # Execute the JS script
+            local output=$(node tools/pupa.js VIEW_URL="$view_url" IP="$ip" PORT="$port" USER_AGENT="$user_agent")
+            local status=$(echo "$output" | grep "Status:" | cut -d' ' -f2)
+            
+            local end_time=$(($(date +%s%N)/1000000))
             local execution_time=$((end_time - start_time))
             
-            local status
-            if [ "$response" = "200" ]; then
-                status="SUCCESS"
+            if [ "$status" = "SUCCESS" ]; then
                 ((success_count++))
                 ((total_success_count++))
             else
@@ -163,8 +147,8 @@ execute_curl_requests() {
             fi
             
             echo "$view_url $ip:$port $status ${execution_time}ms"
-            # Run Python script to scrape cookies
-            #python3 cookie_scraper.py "$base_url"
+            echo "$output"
+            
             # Add random delay between requests
             local delay=$(get_random_delay)
             echo "Waiting for ${delay}ms before next request..."
@@ -191,10 +175,10 @@ main() {
         download_proxy_list
         echo "Proxy list updated successfully."
         check_proxies
-        execute_curl_requests
+        execute_js_requests
     else
-        echo "No update needed. Executing curl requests with existing proxies."
-        execute_curl_requests
+        echo "No update needed. Executing JS requests with existing proxies."
+        execute_js_requests
     fi
 }
 
