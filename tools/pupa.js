@@ -34,9 +34,15 @@ async function runScraper(viewUrl, ip, port, userAgent) {
 
     // Enable JavaScript
     await page.setJavaScriptEnabled(true);
-
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-CH-UA': '"Google Chrome";v="91", "Chromium";v="91", ";Not A Brand";v="99"',
+      'Sec-CH-UA-Mobile': '?0',
+      'Sec-CH-UA-Platform': '"Windows"',
+    });
+    //await page.emulate(puppeteer.devices['Desktop 1920x1080']);
     // Set viewport size
-    await page.setViewport({width: 300, height: 500});
+    await page.setViewport({width: 1920, height: 1080});
 
     // Increase default timeout
     page.setDefaultNavigationTimeout(10000); // 10 seconds
@@ -103,31 +109,37 @@ async function runScraper(viewUrl, ip, port, userAgent) {
     }
 
     // Wait for any lazy-loaded content
-    try {
-      await Promise.race([
-        new Promise(resolve => setTimeout(resolve, 5000)),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout exceeded')), 5000))
-      ]);
-    } catch (error) {
-      if (error.message === 'Timeout exceeded') {
-        console.log('Status: ERROR');
-        console.log('Error: Timeout exceeded');
-        await browser.close();
-        return; // Przerwij dalsze wykonanie skryptu
-      }
-      throw error; // Rzuć błąd ponownie, jeśli to nie jest błąd przekroczenia czasu
-    }
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
-    console.log('Scrolling to bottom of page');
-    await autoScroll(page);
-
+    // Znajdź interesujący element (na przykład, główny kontener treści)
+    const element = await page.$('main'); // Zmień 'main' na selektor odpowiadający interesującemu Cię elementowi
 
     const date = new Date().toISOString().replace(/[:.]/g, '-');
     const baseUrl = new URL(viewUrl).hostname;
-    const screenshotName = `${date}_${baseUrl}_${ip}.png`;
-    const screenshotPath = path.join(screenshotDir, screenshotName);
-    await page.screenshot({ path: screenshotPath, fullPage: true });
-    console.log(`Screenshot saved as ${screenshotPath}`);
+
+    if (element) {
+      // Pobierz wymiary i pozycję elementu
+      const boundingBox = await element.boundingBox();
+
+      // Zrób zrzut ekranu tylko tego elementu
+      const screenshotBuffer = await page.screenshot({
+        clip: boundingBox,
+        encoding: 'binary'
+      });
+
+      // Zapisz zrzut ekranu
+      const screenshotName = `${date}_${baseUrl}_${ip}.png`;
+      const screenshotPath = path.join(screenshotDir, screenshotName);
+      fs.writeFileSync(screenshotPath, screenshotBuffer);
+      console.log(`Screenshot saved as ${screenshotPath}`);
+    } else {
+      console.log('Element not found. Taking full page screenshot.');
+      // Jeśli element nie został znaleziony, zrób zrzut całej strony
+      const screenshotName = `${date}_${baseUrl}_${ip}_full.png`;
+      const screenshotPath = path.join(screenshotDir, screenshotName);
+      await page.screenshot({ path: screenshotPath, fullPage: true });
+      console.log(`Full page screenshot saved as ${screenshotPath}`);
+    }
 
     console.log('Status: SUCCESS');
   } catch (error) {
